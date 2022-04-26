@@ -11,9 +11,14 @@ builder.Services.AddScoped<IConverter, Converter>();
 builder.Services.AddScoped<ISummary, Summary>();
 builder.Services.AddScoped<ILocationService, LocationService>();
 
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
 var app = builder.Build();
 
 var forecast = new ForecastEndpoint();
+
+app.UseSwagger();
 
 app.MapGet("/forecast",
     (IConverter converter, ISummary summary, ILocationService locationService) =>
@@ -29,5 +34,7 @@ app.MapGet("/forecast/city={city}&days={days}",
         forecast.GetForCityAsync(city, days, converter, summary, locationService));
 
 app.UseHttpLogging();
+
+app.UseSwaggerUI();
 
 app.Run();
