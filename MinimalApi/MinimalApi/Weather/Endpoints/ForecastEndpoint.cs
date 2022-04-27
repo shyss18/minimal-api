@@ -7,23 +7,34 @@ namespace MinimalApi.Weather.Endpoints;
 
 public class ForecastEndpoint
 {
-    public Task<WeatherForecast[]> GetAsync(
-        IConverter converter,
+    private readonly ISummary _summary;
+    private readonly IConverter _converter;
+    private readonly ILocationService _locationService;
+
+    public ForecastEndpoint(
         ISummary summary,
+        IConverter converter,
         ILocationService locationService)
+    {
+        _summary = summary;
+        _converter = converter;
+        _locationService = locationService;
+    }
+
+    public Task<WeatherForecast[]> GetAsync()
     {
         var forecast = Enumerable
             .Range(0, 5)
             .Select(day =>
             {
                 var temperatureC = new Random().NextInt64(-50, 50);
-                var temperatureF = converter.ToFahrenheit(temperatureC);
+                var temperatureF = _converter.ToFahrenheit(temperatureC);
 
                 return new WeatherForecast
                 {
                     Date = DateTime.Now.AddDays(day),
-                    City = locationService.GetRandomCity(),
-                    Summary = summary.GetRandom(),
+                    City = _locationService.GetRandomCity(),
+                    Summary = _summary.GetRandom(),
                     TemperatureC = temperatureC,
                     TemperatureF = temperatureF
                 };
@@ -33,24 +44,20 @@ public class ForecastEndpoint
         return Task.FromResult(forecast);
     }
 
-    public Task<WeatherForecast[]> GetInDaysAsync(
-        int days,
-        IConverter converter,
-        ISummary summary,
-        ILocationService locationService)
+    public Task<WeatherForecast[]> GetInDaysAsync(int days)
     {
         var forecast = Enumerable
             .Range(0, days)
             .Select(day =>
             {
                 var temperatureC = new Random().NextInt64(-50, 50);
-                var temperatureF = converter.ToFahrenheit(temperatureC);
+                var temperatureF = _converter.ToFahrenheit(temperatureC);
 
                 return new WeatherForecast
                 {
                     Date = DateTime.Now.AddDays(day),
-                    City = locationService.GetRandomCity(),
-                    Summary = summary.GetRandom(),
+                    City = _locationService.GetRandomCity(),
+                    Summary = _summary.GetRandom(),
                     TemperatureC = temperatureC,
                     TemperatureF = temperatureF
                 };
@@ -60,25 +67,20 @@ public class ForecastEndpoint
         return Task.FromResult(forecast);
     }
 
-    public Task<WeatherForecast[]> GetForCityAsync(
-        string city,
-        int days,
-        IConverter converter,
-        ISummary summary,
-        ILocationService locationService)
+    public Task<WeatherForecast[]> GetForCityAsync(string city, int days)
     {
         var forecast = Enumerable
             .Range(0, days)
             .Select(day =>
             {
                 var temperatureC = new Random().NextInt64(-50, 50);
-                var temperatureF = converter.ToFahrenheit(temperatureC);
+                var temperatureF = _converter.ToFahrenheit(temperatureC);
 
                 return new WeatherForecast
                 {
                     Date = DateTime.Now.AddDays(day),
-                    City = locationService.FindCity(city),
-                    Summary = summary.GetRandom(),
+                    City = _locationService.FindCity(city),
+                    Summary = _summary.GetRandom(),
                     TemperatureC = temperatureC,
                     TemperatureF = temperatureF
                 };

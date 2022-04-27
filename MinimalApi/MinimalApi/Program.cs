@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Mvc;
 using MinimalApi.Weather.Endpoints;
 using MinimalApi.Weather.Services.Location;
 using MinimalApi.Weather.Services.Summary;
@@ -10,28 +9,23 @@ builder.Logging.AddConsole();
 builder.Services.AddScoped<IConverter, Converter>();
 builder.Services.AddScoped<ISummary, Summary>();
 builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<ForecastEndpoint>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
-var forecast = new ForecastEndpoint();
-
 app.UseSwagger();
 
-app.MapGet("/forecast",
-    (IConverter converter, ISummary summary, ILocationService locationService) =>
-        forecast.GetAsync(converter, summary, locationService));
+using (var scope = app.Services.CreateScope())
+{
+    var forecast = scope.ServiceProvider.GetService<ForecastEndpoint>() ?? throw new ArgumentNullException();
 
-app.MapGet("/forecast/days={days}",
-    (int days, IConverter converter, ISummary summary, ILocationService locationService) =>
-        forecast.GetInDaysAsync(days, converter, summary, locationService));
-
-app.MapGet("/forecast/city={city}&days={days}",
-    (string city, int days, IConverter converter, ISummary summary,
-            ILocationService locationService) =>
-        forecast.GetForCityAsync(city, days, converter, summary, locationService));
+    app.MapGet("/forecast", () => forecast.GetAsync());
+    app.MapGet("/forecast/days={days}", (int days) => forecast.GetInDaysAsync(days));
+    app.MapGet("/forecast/city={city}&days={days}", (string city, int days) => forecast.GetForCityAsync(city, days));
+}
 
 app.UseHttpLogging();
 
